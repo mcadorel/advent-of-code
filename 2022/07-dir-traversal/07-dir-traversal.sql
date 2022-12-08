@@ -67,7 +67,40 @@ from b
 ;
 
 -- build tree 🎄 from paths
--- @todo
+drop table if exists dir_tree;
+create table dir_tree as
+select distinct
+    path[:cardinality(path) - 1] as parent,
+    path[:cardinality(path)] as current,
+    cardinality(path) as depth,
+    path,
+    filesizes
+from input_decorated
+where filesizes is not null
+order by 3, 1, 2
+;
 
--- sum filesizes <=100000 of all paths of tree
--- @todo
+-- agregate filesizes by branch
+-- @fixme: wrong way recursion (top-down instead of bottom-up)  🙁
+with recursive q as (
+    select
+        depth,
+        parent,
+        current,
+        filesizes
+    from dir_tree
+    where current = '{/}'
+    union all
+    select
+        dir_tree.depth,
+        dir_tree.parent,
+        dir_tree.current,
+        dir_tree.filesizes || q.filesizes as filesizes
+    from dir_tree
+    join q on dir_tree.parent = q.current
+)
+select
+    *
+from q
+order by depth
+;
