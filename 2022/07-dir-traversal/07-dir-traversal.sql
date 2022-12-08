@@ -104,3 +104,25 @@ select
 from q
 order by depth
 ;
+
+-- using the ltree extension (definitely not standard sql, I know 😅)
+-- https://www.postgresql.org/docs/current/ltree.html
+-- create extension ltree;
+with ltrees as (
+    select
+        *,
+        translate(
+            replace(current::text, ',', '.'),
+        '/{}', 'x')::ltree as ltree,
+        (select sum(n) from unnest(filesizes) _(n))
+    from dir_tree
+)
+select
+    parents.depth,
+    parents.ltree,
+    sum(children.sum)
+from ltrees children
+join ltrees parents on children.ltree <@ parents.ltree
+group by parents.depth, parents.ltree
+having sum(children.sum) < 100000
+order by parents.depth
