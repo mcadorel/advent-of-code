@@ -18,3 +18,5 @@ cross join generate_series(lower(r), upper(r)) _(n)
 -- match invalid ids
 where regexp_match(n::text, '^(\d+)\1$') is not null
 ;
+
+-- part 2 : change the regex to '^(\d+)\1+$'
