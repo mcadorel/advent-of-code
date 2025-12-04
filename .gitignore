@@ -1,0 +1,4 @@
+.idea
+
+# do not commit actual inputs
+**/input.sql
